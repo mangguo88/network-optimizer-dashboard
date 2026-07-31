@@ -106,11 +106,13 @@
                     <div class="test-controls">
                         <div class="input-group">
                             <label>测试数量</label>
-                            <input type="number" id="cf-count" min="5" max="100" value="20" class="input-small">
+                            <input type="number" id="cf-count" min="5" max="500" value="50" class="input-small">
                         </div>
                         <button id="btn-cf-optimize" class="btn btn-primary">🚀 开始Cloudflare IP优选</button>
                         <button id="btn-cf-optimize-50" class="btn btn-secondary">测速50个IP</button>
+                        <button id="btn-cf-optimize-100" class="btn btn-secondary">测速100个IP</button>
                     </div>
+                    <p class="desc" id="cf-availability">可获得约5000+ Cloudflare edge IPs</p>
                     <div class="card">
                         <h3>优选结果</h3>
                         <table class="results-table">

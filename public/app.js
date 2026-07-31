@@ -38,6 +38,10 @@ class NetworkDashboard {
             this.cfOptimize(50);
         });
 
+        document.getElementById('btn-cf-optimize-100').addEventListener('click', () => {
+            this.cfOptimize(100);
+        });
+
         document.getElementById('btn-copy-best-ip').addEventListener('click', () => {
             this.copyBestIp();
         });
@@ -542,12 +546,17 @@ class NetworkDashboard {
         this.showNotification('设置已保存', 'success');
     }
 
-    async cfOptimize(count = 20) {
+    async cfOptimize(count = 50) {
+        const customCount = parseInt(document.getElementById('cf-count').value);
+        if (customCount > 0) count = customCount;
+
         const btn = document.getElementById('btn-cf-optimize');
         const btn50 = document.getElementById('btn-cf-optimize-50');
+        const btn100 = document.getElementById('btn-cf-optimize-100');
         btn.disabled = true;
         btn50.disabled = true;
-        btn.textContent = `⏳ 测试中...`;
+        btn100.disabled = true;
+        btn.textContent = `⏳ 测试${count}个IP...`;
 
         try {
             const resp = await this.fetchWithTimeout(
@@ -567,6 +576,11 @@ class NetworkDashboard {
                 port: 443,
                 group: 'cloudflare',
             }));
+
+            const availEl = document.getElementById('cf-availability');
+            if (data.total_available) {
+                availEl.textContent = `共${data.total_available}个IP (${data.known_count}内置 + ${data.expanded_count}从CIDR范围)`;
+            }
 
             const results = [];
             const chunkSize = 10;
@@ -588,8 +602,9 @@ class NetworkDashboard {
         } catch (error) {
             console.error('CF optimize error:', error);
         } finally {
-            btn.disabled = false;
+             btn.disabled = false;
             btn50.disabled = false;
+            btn100.disabled = false;
             btn.textContent = '🚀 开始Cloudflare IP优选';
         }
     }
@@ -598,7 +613,9 @@ class NetworkDashboard {
         const tbody = document.getElementById('cf-results-body');
         tbody.innerHTML = '';
 
-        results.forEach((r, index) => {
+        const displayResults = results.slice(0, 20);
+
+        displayResults.forEach((r, index) => {
             const row = document.createElement('tr');
             const latency = r.tcp_latency && r.tcp_latency > 0 ? r.tcp_latency.toFixed(1) : '-1';
             const statusClass = r.status === 'success' ? 'status-success' : 'status-failed';
