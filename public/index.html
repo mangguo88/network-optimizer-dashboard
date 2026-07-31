@@ -3,216 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网络优化面板 | Network Optimizer Dashboard</title>
-    <link rel="stylesheet" href="/style.css">
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <title>Network Optimizer Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <h1>🚀 网络优化面板</h1>
-            <p class="subtitle">智能节点测速与优选工具 / Network Node Optimizer</p>
-        </header>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen p-6">
+    <div class="max-w-3xl mx-auto">
+        <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">网络优选与测速面板</h1>
+        
+        <!-- 本地 IP 状态卡片 -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 border-b pb-2">📍 本地网络状态</h2>
+            <div id="my-network-info" class="text-gray-600">正在自动获取您的网络信息...</div>
+        </div>
 
-        <nav class="nav-tabs">
-            <button class="tab-btn active" data-tab="dashboard">📊 仪表盘</button>
-            <button class="tab-btn" data-tab="tester">🔍 节点测速</button>
-            <button class="tab-btn" data-tab="cf-optimize">✨ Cloudflare IP优选</button>
-            <button class="tab-btn" data-tab="vps-manage">🖥️ VPS管理</button>
-            <button class="tab-btn" data-tab="history">📜 历史记录</button>
-            <button class="tab-btn" data-tab="settings">⚙️ 设置</button>
-        </nav>
-
-        <main class="main-content">
-            <div id="dashboard-tab" class="tab-pane active">
-                <div class="dashboard-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="stat-total-nodes">-</div>
-                        <div class="stat-label">配置节点数</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value good" id="stat-good-nodes">-</div>
-                        <div class="stat-label">优良节点</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value warning" id="stat-warning-nodes">-</div>
-                        <div class="stat-label">警告节点</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value bad" id="stat-bad-nodes">-</div>
-                        <div class="stat-label">不可用节点</div>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>🏆 推荐结果</h2>
-                    <div id="recommendations-list">
-                        <p class="hint">点击"节点测速"开始测试</p>
-                    </div>
-                </div>
-                <div class="card">
-                    <h2>⚠️ 不稳定节点</h2>
-                    <div id="unstable-list">
-                        <p class="hint">暂无检测到不稳定节点</p>
-                    </div>
-                </div>
+        <!-- 优选 IP 测速卡片 -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-semibold">⚡ 智能节点测速优选</h2>
+                <button id="start-test-btn" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition">
+                    开始自动优选
+                </button>
             </div>
-
-            <div id="tester-tab" class="tab-pane">
-                <div class="card">
-                    <h2>🔍 节点测速</h2>
-                    <div class="test-controls">
-                        <div class="input-group">
-                            <label>测试方法</label>
-                            <div class="checkbox-group">
-                                <label><input type="checkbox" name="method" value="tcp" checked> TCP连接</label>
-                                <label><input type="checkbox" name="method" value="http" checked> HTTP延迟</label>
-                                <label><input type="checkbox" name="method" value="icmp"> ICMP Ping</label>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <label>超时时间 (秒)</label>
-                            <input type="number" id="test-timeout" min="1" max="30" value="5" class="input-small">
-                        </div>
-                        <button id="btn-test-all" class="btn btn-primary">🚀 开始测速全部节点</button>
-                    </div>
-                    <div class="card">
-                        <h3>测速结果</h3>
-                        <div id="test-results-container">
-                            <table class="results-table">
-                                <thead>
-                                    <tr>
-                                        <th>排名</th>
-                                        <th>节点名称</th>
-                                        <th>主机</th>
-                                        <th>TCP延迟(ms)</th>
-                                        <th>HTTP延迟(ms)</th>
-                                        <th>状态</th>
-                                        <th>评分</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="results-body">
-                                    <tr><td colspan="7" class="hint">点击"开始测速全部节点"开始测试</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-600">
+                            <th class="py-2 px-4">节点名称</th>
+                            <th class="py-2 px-4">IP 地址</th>
+                            <th class="py-2 px-4">延迟 (ms)</th>
+                            <th class="py-2 px-4">状态</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ip-table-body">
+                        <tr><td colspan="4" class="text-center py-4 text-gray-500">点击右上角按钮开始获取节点并测速</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <div id="cf-optimize-tab" class="tab-pane">
-                <div class="card">
-                    <h2>✨ Cloudflare IP优选</h2>
-                    <p class="desc">自动测试多个Cloudflare IP，找出延迟最低、最适合本地网络的IP。</p>
-                    <div class="test-controls">
-                        <div class="input-group">
-                            <label>测试数量</label>
-                            <input type="number" id="cf-count" min="5" max="500" value="50" class="input-small">
-                        </div>
-                        <button id="btn-cf-optimize" class="btn btn-primary">🚀 开始Cloudflare IP优选</button>
-                        <button id="btn-cf-optimize-50" class="btn btn-secondary">测速50个IP</button>
-                        <button id="btn-cf-optimize-100" class="btn btn-secondary">测速100个IP</button>
-                    </div>
-                    <p class="desc" id="cf-availability">可获得约5000+ Cloudflare edge IPs</p>
-                    <div class="card">
-                        <h3>优选结果</h3>
-                        <table class="results-table">
-                            <thead>
-                                <tr>
-                                    <th>排名</th>
-                                    <th>IP地址</th>
-                                    <th>名称</th>
-                                    <th>延迟(ms)</th>
-                                    <th>状态</th>
-                                </tr>
-                            </thead>
-                            <tbody id="cf-results-body">
-                                <tr><td colspan="5" class="hint">点击"开始Cloudflare IP优选"开始测试</td></tr>
-                            </tbody>
-                        </table>
-                        <div class="mt-2">
-                            <button id="btn-copy-best-ip" class="btn btn-success" disabled>复制最佳IP到剪贴板</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="vps-manage-tab" class="tab-pane">
-                <div class="card">
-                    <h2>🖥️ VPS节点管理</h2>
-                    <div class="test-controls">
-                        <div class="input-group">
-                            <label>节点名称</label>
-                            <input type="text" id="vps-name" placeholder="例如: 北京VPS" class="input-medium">
-                        </div>
-                        <div class="input-group">
-                            <label>IP地址</label>
-                            <input type="text" id="vps-ip" placeholder="例如: 123.45.67.89" class="input-medium">
-                        </div>
-                        <div class="input-group">
-                            <label>端口</label>
-                            <input type="number" id="vps-port" min="1" max="65535" value="443" class="input-small">
-                        </div>
-                        <button id="btn-add-vps" class="btn btn-primary">➕ 添加节点</button>
-                    </div>
-                    <div class="card">
-                        <h3>已添加的节点</h3>
-                        <table class="results-table">
-                            <thead>
-                                <tr>
-                                    <th>名称</th>
-                                    <th>IP</th>
-                                    <th>端口</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vps-list-body">
-                                <tr><td colspan="4" class="hint">暂无VPS节点</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="history-tab" class="tab-pane">
-                <div class="card">
-                    <h2>📜 历史记录</h2>
-                    <div class="test-controls">
-                        <button id="btn-export-history" class="btn btn-success">💾 导出JSON</button>
-                        <button id="btn-clear-history" class="btn btn-warning">🗑️ 清空历史</button>
-                    </div>
-                    <div id="history-list">
-                        <p class="hint">暂无历史记录</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="settings-tab" class="tab-pane">
-                <div class="card">
-                    <h2>⚙️ 设置</h2>
-                    <div class="settings-form">
-                        <div class="input-group">
-                            <label>默认超时时间 (秒)</label>
-                            <input type="number" id="setting-timeout" min="1" max="30" value="5">
-                        </div>
-                        <div class="input-group">
-                            <label>并发测试数</label>
-                            <input type="number" id="setting-parallel" min="1" max="100" value="20">
-                        </div>
-                        <div class="input-group">
-                            <label>重试次数</label>
-                            <input type="number" id="setting-retries" min="0" max="5" value="2">
-                        </div>
-                        <div class="input-group">
-                            <label>
-                                <input type="checkbox" id="setting-save-history" checked> 保存历史记录
-                            </label>
-                        </div>
-                        <button id="btn-save-settings" class="btn btn-primary">💾 保存设置</button>
-                    </div>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
-    <script src="/app.js"></script>
+
+    <script src="app.js"></script>
 </body>
 </html>
