@@ -582,19 +582,19 @@ class NetworkDashboard {
                 availEl.textContent = `共${data.total_available}个IP (${data.known_count}内置 + ${data.expanded_count}从CIDR范围)`;
             }
 
-            const results = [];
             const chunkSize = 10;
             for (let i = 0; i < cfIps.length; i += chunkSize) {
                 const chunk = cfIps.slice(i, i + chunkSize);
                 const chunkResults = await Promise.all(
-                    chunk.map(node => this.testNode(node, ['tcp']))
+                    chunk.map(node => this.testNode(node, ['http']))
                 );
                 results.push(...chunkResults);
             }
 
             results.sort((a, b) => {
-                if (a.tcp_latency && b.tcp_latency) return a.tcp_latency - b.tcp_latency;
-                return 0;
+                const latA = a.http_latency || a.tcp_latency || 0;
+                const latB = b.http_latency || b.tcp_latency || 0;
+                return latA - latB;
             });
 
             this.cfResults = results;
@@ -617,7 +617,8 @@ class NetworkDashboard {
 
         displayResults.forEach((r, index) => {
             const row = document.createElement('tr');
-            const latency = r.tcp_latency && r.tcp_latency > 0 ? r.tcp_latency.toFixed(1) : '-1';
+            const latency = r.http_latency && r.http_latency > 0 ? r.http_latency.toFixed(1) :
+                           r.tcp_latency && r.tcp_latency > 0 ? r.tcp_latency.toFixed(1) : '-1';
             const statusClass = r.status === 'success' ? 'status-success' : 'status-failed';
             row.innerHTML = `
                 <td>${index + 1}</td>
@@ -630,12 +631,13 @@ class NetworkDashboard {
         });
 
         const copyBtn = document.getElementById('btn-copy-best-ip');
-        const best = results.find(r => r.status === 'success' && r.tcp_latency && r.tcp_latency > 0);
+        const best = results.find(r => r.status === 'success' && (r.http_latency || r.tcp_latency));
         if (best) {
             copyBtn.disabled = false;
             copyBtn.onclick = () => {
-                copyBtn.onclick = () => navigator.clipboard.writeText(best.host);
-                this.showNotification(`最佳IP ${best.host} 已复制`, 'success');
+                navigator.clipboard.writeText(best.host).then(() => {
+                    this.showNotification(`最佳IP ${best.host} 已复制`, 'success');
+                });
             };
         } else {
             copyBtn.disabled = true;
@@ -644,7 +646,7 @@ class NetworkDashboard {
 
     copyBestIp() {
         if (this.cfResults.length === 0) return;
-        const best = this.cfResults.find(r => r.status === 'success' && r.tcp_latency && r.tcp_latency > 0);
+        const best = this.cfResults.find(r => r.status === 'success' && (r.http_latency || r.tcp_latency));
         if (best) {
             navigator.clipboard.writeText(best.host).then(() => {
                 this.showNotification(`最佳IP ${best.host} 已复制到剪贴板`, 'success');
